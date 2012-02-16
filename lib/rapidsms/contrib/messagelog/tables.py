@@ -13,6 +13,7 @@ class MessageTable(Table):
     # this is temporary, until i fix ModelTable!
     contact = Column()
     connection = Column()
+    type = Column(value = lambda cell : cell.row.message_type, sortable = False)
     direction = Column()
     date = DateColumn(format="H:i d/m/Y")
     text = Column(css_class="message")

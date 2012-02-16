@@ -5,7 +5,7 @@
 import datetime
 from rapidsms.apps.base import AppBase
 from .models import Message
-
+import pytz
 
 class App(AppBase):
     def _who(self, msg):
@@ -18,11 +18,12 @@ class App(AppBase):
 
     def _log(self, direction, who, text):
         return Message.objects.create(
-            date=datetime.datetime.utcnow(),
-            direction=direction,
-            text=text,
-            **who)
-
+                date=datetime.datetime.now(tz=pytz.utc),
+                direction=direction,
+                text=text,
+                message_type="SMS",
+                **who)
+        
     def parse(self, msg):
         # annotate the message as we log them in case any other apps
         # want a handle to them

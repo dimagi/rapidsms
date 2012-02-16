@@ -12,13 +12,19 @@ DIRECTION_CHOICES = (
     ("I", "Incoming"),
     ("O", "Outgoing"))
 
+MESSAGE_TYPE_CHOICES = (
+    ("CALL", "CALL")
+   ,("SMS", "SMS")
+)
 
 class Message(models.Model):
     contact    = models.ForeignKey(Contact, null=True)
     connection = models.ForeignKey(Connection, null=True)
     direction  = models.CharField(max_length=1, choices=DIRECTION_CHOICES)
     date       = models.DateTimeField()
-    text       = models.TextField()
+    text       = models.TextField(blank=True)
+    message_type = models.CharField(max_length=10,choices=MESSAGE_TYPE_CHOICES)
+    post_data  = models.TextField(blank=True, null=True)
 
     def save(self, *args, **kwargs):
         """
