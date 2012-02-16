@@ -7,8 +7,10 @@ from django.shortcuts import render_to_response
 from rapidsms.models import Contact
 from .tables import MessageTable
 from .models import Message
+from django.contrib.auth.decorators import login_required
 
 
+@login_required
 def message_log(req, template="messagelog/index.html"):
     messages = Message.objects.all()
     contact = None
