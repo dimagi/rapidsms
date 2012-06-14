@@ -97,10 +97,8 @@ def _handlers(module_name):
         return []
 
     if not hasattr(handlers_module, "__path__"):
-        raise Exception(
-            "Module %s must be a directory." %
-                (handlers_module.__name__))
-
+        return []
+        
     files = find_python_files(
         handlers_module.__path__[0])
 
