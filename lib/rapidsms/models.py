@@ -136,7 +136,30 @@ class ContactBase(models.Model):
 
         return True
 
-
+    def set_default_connection_identity(self, phone_number, backend_name):
+        """ 
+        set the phone number of the default connection
+        CAUTION: if a connection with the same identity/backend already exists,
+        this function will steal it.
+        """
+        if not phone_number:
+            return None
+        conn = self.default_connection
+        if not conn:
+            backend = Backend.objects.get(name=backend_name)
+            try:
+                conn = Connection.objects.get(backend=backend, 
+                                              identity=phone_number)
+            except Connection.DoesNotExist:
+                # good, it doesn't exist already
+                conn = Connection(backend=backend,
+                                  contact=self)
+            else: 
+                # this connection already exists - so we steal it
+                conn.contact = self
+        conn.identity = phone_number
+        conn.save()
+        return conn
 
 class Contact(ContactBase):
     __metaclass__ = ExtensibleModelBase
