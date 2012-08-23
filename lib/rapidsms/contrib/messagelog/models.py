@@ -6,6 +6,7 @@ from django.db import models, connection
 from django.db.backends.util import typecast_timestamp
 from django.core.exceptions import ValidationError
 from rapidsms.models import Contact, Connection
+from taggit.managers import TaggableManager
 
 
 DIRECTION_CHOICES = (
@@ -19,6 +20,7 @@ class Message(models.Model):
     direction  = models.CharField(max_length=1, choices=DIRECTION_CHOICES)
     date       = models.DateTimeField()
     text       = models.TextField()
+    tags       = TaggableManager()
 
     def save(self, *args, **kwargs):
         """
@@ -63,3 +65,21 @@ class Message(models.Model):
 
         to_from = (self.direction == "I") and "from" or "to"
         return "%s (%s %s)" % (str, to_from, self.who)
+    
+    """
+    Returns a string showing all tags for this Message,
+    separated by a comma. If this Message does not have any
+    tags, an empty string is returned.
+    """
+    def get_tags_for_display(self):
+        tag_list = []
+        for tag in self.tags.all():
+            tag_list.append(tag.name)
+        tag_list.sort()
+        
+        display = ""
+        if len(tag_list) > 0:
+            display = ", ".join(tag_list)
+        
+        return display
+
