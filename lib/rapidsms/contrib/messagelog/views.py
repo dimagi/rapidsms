@@ -11,8 +11,10 @@ from taggit.models import Tag, TaggedItem
 import re
 from django.db.models import Q
 
-def message_log(req, template="messagelog/index.html"):
+def message_log(req, context={}, template="messagelog/index.html"):
     messages = Message.objects.all()
+    if 'messages_qs' in context:
+        messages = context['messages_qs']
     contact = None
     search = None
     show_advanced_filter = None # "Y" to show the advanced filter, "N" to hide it
@@ -73,9 +75,7 @@ def message_log(req, template="messagelog/index.html"):
                 messages = messages.filter(tags__name__in=[tag_name])
         else:
             messages = messages.filter(tags__name__in=selected_tags).distinct()
-
-    return render_to_response(
-        template, {
+    context.update({
             "messages_table": MessageTable(messages, request=req),
             "search": search,
             "contact": contact,
@@ -85,5 +85,7 @@ def message_log(req, template="messagelog/index.html"):
             "selected_tags": selected_tags,
             "tag_filter_flag": tag_filter_flag,
             "tag_filter_style": tag_filter_style
-        }, context_instance=RequestContext(req)
+    })
+    return render_to_response(
+        template, context, context_instance=RequestContext(req)
     )

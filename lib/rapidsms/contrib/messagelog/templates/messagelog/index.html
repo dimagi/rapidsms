@@ -37,7 +37,8 @@
                 show_advanced_filter_element.value = 'Y';
                 advanced_toggle_element.innerHTML = '[Hide Advanced Filter]';
             }
-        ">[{% if show_advanced_filter == "Y" %}Hide{% else %}Show{% endif %} Advanced Filter]</a>
+        ">[{% if show_advanced_filter == "Y" %}Hide{% else %}Show{% endif %} Advanced Filter]</a>&nbsp;
+        <a href="{{request.path}}">[Reset Filters]</a>
         <div id="advanced_filter" style="display: {% if show_advanced_filter == "Y" %}block{% else %}none{% endif %};">
             <br />
             <input type="hidden" id="show_advanced_filter" name="show_advanced_filter" value="{{ show_advanced_filter }}" />
