@@ -32,9 +32,10 @@ def message_log(req, context={}, template="messagelog/index.html"):
 
     if 'search' in req.GET and req.GET['search'] != '':
         search = req.GET['search']
-        messages = messages.filter(Q(text__iregex=re.escape(search)) |\
-                                   Q(connection__identity__iregex=re.escape(search)))
-    
+        safe_search = re.escape(search).strip("'\"")
+        messages = messages.filter(Q(text__iregex=safe_search) |\
+                                   Q(connection__identity__iregex=safe_search))
+
     # Extract and sort all tag names
     for tag in TaggedItem.tags_for(Message):
         all_tags.append(tag.name)
