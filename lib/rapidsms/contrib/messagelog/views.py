@@ -32,7 +32,7 @@ def message_log(req, context={}, template="messagelog/index.html"):
 
     if 'search' in req.GET and req.GET['search'] != '':
         search = req.GET['search']
-        safe_search = re.escape(search).strip("'\"")
+        safe_search = re.escape(search.strip("'\""))
         messages = messages.filter(Q(text__iregex=safe_search) |\
                                    Q(connection__identity__iregex=safe_search))
 
