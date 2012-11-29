@@ -6,5 +6,5 @@ from . import views
 
 urlpatterns = patterns('',
     url(r'^$',
-        views.message_log,
+        views.MessageLogView.as_view(),
         name="message_log"))
