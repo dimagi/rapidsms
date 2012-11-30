@@ -13,10 +13,10 @@ from taggit.models import Tag, TaggedItem
 import re
 
 class MessageLogView(View):
-    def get(self, req, context={}, template="messagelog/index.html", *args, **kwargs):
-        messages = Message.objects.all()
-        if 'messages_qs' in context:
-            messages = context['messages_qs']
+    def get_context(self, req, context):
+        if context is None:
+            context = {}
+        messages = context['messages_qs'] if 'messages_qs' in context else Message.objects.all()
         contact = None
         search = None
         show_advanced_filter = None # "Y" to show the advanced filter, "N" to hide it
@@ -80,6 +80,7 @@ class MessageLogView(View):
                 messages = messages.filter(tags__name__in=selected_tags).distinct()
         context.update({
                 "messages_table": MessageTable(messages, request=req),
+                "messages_qs": messages, 
                 "search": search,
                 "contact": contact,
                 "contacts": Contact.objects.all().order_by("name"),
@@ -89,6 +90,9 @@ class MessageLogView(View):
                 "tag_filter_flag": tag_filter_flag,
                 "tag_filter_style": tag_filter_style
         })
+        return context
+
+    def get(self, req, context=None, template="messagelog/index.html", *args, **kwargs):
         return render_to_response(
-            template, context, context_instance=RequestContext(req)
+            template, self.get_context(req, context), context_instance=RequestContext(req)
         )
