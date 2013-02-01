@@ -4,9 +4,12 @@
 
 from datetime import datetime
 from django.db import models
+from django.db.models.signals import post_save, post_delete, pre_save
 from .utils.modules import try_import, get_classes
 from .errors import NoConnectionError, MessageSendingError
 from .conf import settings
+from .signals import post_save_connection, post_delete_connection, \
+    pre_save_connection
 
 
 class ExtensibleModelBase(models.base.ModelBase):
@@ -90,6 +93,10 @@ class ContactBase(models.Model):
         "The language which this contact prefers to communicate in, as "
         "a W3C language tag. If this field is left blank, RapidSMS will "
         "default to: " + settings.LANGUAGE_CODE)
+    default_connection  = models.ForeignKey('Connection', null=True, 
+                                            blank=True, 
+                                            related_name='contact+', 
+                                            on_delete=models.SET_NULL)
 
     class Meta:
         abstract = True
@@ -104,17 +111,6 @@ class ContactBase(models.Model):
     @property
     def is_anonymous(self):
         return not self.name
-
-    @property
-    def default_connection(self):
-        """
-        Return the default connection for this person.
-        """
-        # TODO: this is defined totally arbitrarily for a future 
-        # sane implementation
-        if self.connection_set.count() > 0:
-            return self.connection_set.all()[0]
-        return None
 
     def message(self, template, **kwargs):
         """
@@ -160,6 +156,13 @@ class ContactBase(models.Model):
         conn.identity = phone_number
         conn.save()
         return conn
+
+    def update_default_connection(self):
+        if self.default_connection is None:
+            # default to the connection with the smallest pk
+            if self.connection_set.count() > 0:
+                self.default_connection = self.connection_set.all().order_by('-pk')[0]            
+                self.save()
 
 class Contact(ContactBase):
     __metaclass__ = ExtensibleModelBase
@@ -214,6 +217,9 @@ class Connection(ConnectionBase):
 
     __metaclass__ = ExtensibleModelBase
 
+pre_save.connect(pre_save_connection, sender=Connection)
+post_save.connect(post_save_connection, sender=Connection)
+post_delete.connect(post_delete_connection, sender=Connection)
 
 class DeliveryReport(models.Model):
     '''
