@@ -12,13 +12,13 @@ register = template.Library()
 
 
 class Tab(object):
-    
+
     def __init__(self, view, caption=None, permission=None, url=None):
         self._caption = caption
         self._view = view
         self._permission = permission
         self._url = url
-    
+
     def _auto_caption(self):
         func_name = self._view.split('.')[-1]       # my_view
         return func_name.replace("_", " ").title()  # My View
@@ -48,8 +48,13 @@ class Tab(object):
         return slug
 
     def has_permission(self, user):
-        if self._permission:    return user.has_perm(self._permission)
-        else:                   return True
+        if self._permission:
+            if hasattr(self._permission, '__call__'):
+                return self._permission(user)
+            else:
+                return user.has_perm(self._permission)
+        else:
+            return True
 
 
 # adapted from ubernostrum's django-template-utils. it didn't seem
