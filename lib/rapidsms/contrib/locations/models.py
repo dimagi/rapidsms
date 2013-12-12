@@ -34,6 +34,8 @@ class LocationType(models.Model):
     classes for each location type (as is supported by the generic 
     relation to parent).  
     """
+    __metaclass__ = ExtensibleModelBase
+
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True, primary_key=True)
 

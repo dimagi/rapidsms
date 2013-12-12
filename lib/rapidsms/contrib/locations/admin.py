@@ -5,6 +5,8 @@ from django.contrib import admin
 from models import Location, LocationType, Point
 
 class LocationAdmin(admin.ModelAdmin):
+    list_display = ("name", "code", "type")
+    list_filter = ('type', 'is_active')
     model = Location
 
 class LocationTypeAdmin(admin.ModelAdmin):

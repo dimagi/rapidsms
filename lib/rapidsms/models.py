@@ -90,6 +90,10 @@ class ContactBase(models.Model):
         "The language which this contact prefers to communicate in, as "
         "a W3C language tag. If this field is left blank, RapidSMS will "
         "default to: " + settings.LANGUAGE_CODE)
+    _default_connection  = models.ForeignKey('Connection', null=True, 
+                                             blank=True, 
+                                             related_name='contact+', 
+                                             on_delete=models.SET_NULL)
 
     class Meta:
         abstract = True
@@ -112,9 +116,33 @@ class ContactBase(models.Model):
         """
         # TODO: this is defined totally arbitrarily for a future 
         # sane implementation
+        if self._default_connection:
+            return self._default_connection
         if self.connection_set.count() > 0:
             return self.connection_set.all()[0]
         return None
+
+    @default_connection.setter
+    def default_connection(self, identity):
+        # when you re-assign default connection, should you delete the unused connection? probably.
+        from rapidsms.models import Connection
+        backend = self.default_backend
+        default = self.default_connection
+        if default is not None:
+            if default.identity == identity and default.backend == backend:
+                # our job is done
+                return
+            default.delete()
+        try:
+            conn = Connection.objects.get(backend=backend, identity=identity)
+        except Connection.DoesNotExist:
+            # good, it doesn't exist already
+            conn = Connection(backend=backend,
+                              identity=identity)
+        conn.contact = self
+        conn.save()
+        self._default_connection = conn
+        self.save()
 
     def message(self, template, **kwargs):
         """
@@ -159,6 +187,8 @@ class ContactBase(models.Model):
                 conn.contact = self
         conn.identity = phone_number
         conn.save()
+        self._default_connection = conn
+        self.save()
         return conn
 
 class Contact(ContactBase):
